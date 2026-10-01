@@ -1,0 +1,38 @@
+services:
+  mongo:
+    image: mongo:7.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-local-only-change-me}
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet -u root -p \"$$MONGO_INITDB_ROOT_PASSWORD\" --authenticationDatabase admin --eval \"db.adminCommand('ping').ok\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  hello-service:
+    build: ./backend/helloService
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+  profile-service:
+    build: ./backend/profileService
+    restart: unless-stopped
+    environment:
+      PORT: 3002
+      MONGO_URL: mongodb://root:${MONGO_ROOT_PASSWORD:-local-only-change-me}@mongo:27017/profiles?authSource=admin
+    depends_on:
+      mongo:
+        condition: service_healthy
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - hello-service
+      - profile-service
+volumes:
+  mongo-data:

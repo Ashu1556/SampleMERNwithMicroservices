@@ -1,0 +1,63 @@
+frontend:
+  image:
+    repository: REPLACE_WITH_ECR_REPOSITORY/mern-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 2
+  service:
+    type: LoadBalancer
+    port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+helloService:
+  image:
+    repository: REPLACE_WITH_ECR_REPOSITORY/mern-hello-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+profileService:
+  image:
+    repository: REPLACE_WITH_ECR_REPOSITORY/mern-profile-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+mongodb:
+  image: mongo:7.0
+  storage: 8Gi
+  existingSecret: mongodb-auth
+  rootPasswordKey: password
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70

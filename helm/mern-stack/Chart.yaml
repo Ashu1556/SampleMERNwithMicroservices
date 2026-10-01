@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mern-stack
+description: React frontend, Node.js microservices, and MongoDB for SampleMERNwithMicroservices
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

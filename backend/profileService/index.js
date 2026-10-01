@@ -5,9 +5,19 @@ var cors = require('cors')
 
 
 const app = express();
-const port = process.env.PORT;
+const port = Number(process.env.PORT || 3002);
+const mongoUrl = process.env.MONGO_URL;
 
-mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+if (!mongoUrl) {
+  throw new Error('MONGO_URL must be set');
+}
+
+mongoose.connect(mongoUrl).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((error) => {
+  console.error('Could not connect to MongoDB:', error.message);
+  process.exit(1);
+});
 
 app.use(express.json());
 app.use(cors())
@@ -15,6 +25,13 @@ app.use(cors())
 
 app.get('/health', (req,res)=>{
     res.send({status: 'OK'})
+})
+
+app.get('/health/ready', (req,res)=>{
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({status: 'NOT_READY'});
+    }
+    return res.json({status: 'OK'});
 })
 
 const userSchema = mongoose.Schema({
@@ -61,9 +78,7 @@ app.post('/addUser', async (req,res)=>{
 
 app.get('/fetchUser', async (req,res)=>{
     try {
-        console.log(req.body);
         let user = await User.find({});
-        console.log(user);
         if (user) {
           res.send(user);
         } else {
@@ -75,6 +90,6 @@ app.get('/fetchUser', async (req,res)=>{
       }
 })
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Profile service is listening on port ${port}`);
 });
